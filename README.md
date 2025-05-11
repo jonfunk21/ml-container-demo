@@ -1,11 +1,11 @@
 # Machine Learning with Apptainers: A Practical Example
 
-This repository demonstrates how to use Apptainers (formerly Singularity) to manage different machine learning environments. We'll implement and train a Variational Autoencoder (VAE) using both Keras (TensorFlow) and PyTorch frameworks, showcasing how Apptainers can help manage dependencies and ensure reproducibility.
+This repository demonstrates how to use Apptainers (formerly Singularity) to manage different machine learning environments. We'll implement and train a Variational Autoencoder (VAE) using both Keras (TensorFlow) and PyTorch frameworks, showcasing how Apptainers can help manage dependencies and ensure reproducibility. I personally found this to be extremely useful in computational protein engineering projects in which you might rely on multiple different pre-trained machine learning algorithms.
 
 ## Background
 
 ### What are Containers?
-Containers are like pre-configured, self-contained environments that package up code and all its dependencies. They ensure that your application runs the same way regardless of where it's deployed. Think of them as shipping containers for software - they keep everything needed to run your application together and isolated from the host system.
+Containers are like pre-configured, self-contained environments that package up code and all its dependencies. They ensure that your application runs the same way regardless of where it's deployed. Think of them as shipping containers for software - they keep everything needed to run your application together and isolated from the host system. Unlike Python virtual environments or conda environments, which only manage Python packages and dependencies, containers encapsulate the entire runtime environment including system libraries, binaries, and even the operating system itself, making them more portable and ensuring complete reproducibility across different machines and platforms.
 
 ### Why Apptainer (formerly Singularity)?
 Apptainer is a container platform specifically designed for high-performance computing and scientific workloads. It has several advantages over other container solutions:
@@ -16,7 +16,7 @@ Apptainer is a container platform specifically designed for high-performance com
 4. **Compatibility**: It can run Docker containers and is compatible with most HPC environments.
 
 ### How Do Apptainers Help in Machine Learning?
-Machine learning projects often require different versions of:
+In larger project we often rely on multiple machine learning algorithms needing vaslty different environments, vor example:
 - Python
 - Deep learning frameworks (TensorFlow, PyTorch, etc.)
 - CUDA for GPU acceleration
@@ -45,7 +45,7 @@ This project demonstrates how to:
 
 Apptainers are particularly useful in machine learning for several reasons:
 
-1. **Environment Isolation**: Each framework (Keras, PyTorch) can have its own container with specific dependencies, avoiding conflicts.
+1. **Environment Isolation**: Each model can have its own container with specific dependencies, avoiding conflicts.
 2. **Reproducibility**: The exact same environment can be recreated on any system that supports Apptainers.
 3. **Portability**: Containers can be easily shared and run on different systems without worrying about dependency issues.
 4. **Clean Workspace**: No need to install multiple versions of Python, CUDA, or other dependencies on your system.
@@ -86,7 +86,7 @@ aptainer_test/
 
 ### Building the Containers
 
-First, build the containers for both frameworks:
+In this litle toy example we are simulating the case of having multiple machine learning models with conflicting environments, by building two simple generative models that use different machine learning frameworks (PyTorch and Keras). We start by building the aptainers that will be used to run the machine learning algorithms:
 
 ```bash
 python build_containers.py
@@ -95,6 +95,43 @@ python build_containers.py
 This will create two container files:
 - `keras-mnist.sif`: Container with Keras (TensorFlow) and its dependencies
 - `pytorch-mnist.sif`: Container with PyTorch and its dependencies
+
+### How the Build Script Works
+
+The `build_containers.py` script creates two separate Apptainer definition files and builds them into containers. Here's what happens:
+
+1. **Definition Files**: The script creates two `.def` files:
+   - `keras.def`: Sets up a Python environment with TensorFlow/Keras
+   - `pytorch.def`: Sets up a Python environment with PyTorch
+
+2. **Key Components**: Each definition file includes:
+   ```bash
+   # Base image (Ubuntu)
+   Bootstrap: library
+   From: ubuntu:22.04
+
+   # Install Python and pip
+   %post
+       apt-get update
+       apt-get install -y python3 python3-pip
+
+   # Install framework-specific packages
+   %post
+       pip3 install tensorflow  # for Keras
+       # or
+       pip3 install torch torchvision  # for PyTorch
+   ```
+
+3. **Building Process**: The script then builds each container:
+   ```python
+   # Build Keras container
+   subprocess.run(['apptainer', 'build', 'keras-mnist.sif', 'keras.def'])
+   
+   # Build PyTorch container
+   subprocess.run(['apptainer', 'build', 'pytorch-mnist.sif', 'pytorch.def'])
+   ```
+
+This process ensures that each framework has its own isolated environment with exactly the dependencies it needs.
 
 ### Training the Models
 
@@ -127,9 +164,9 @@ tensorboard --logdir vae/keras/logs
 tensorboard --logdir vae/pytorch/logs
 ```
 
-### Generating Reconstructions and Visualizations
+### Inference with Aptainers
 
-After training, you can generate reconstructions and latent space visualizations:
+After training, we can simulate inference using aptainers, by generating reconstructions and latent space visualizations:
 
 ```bash
 # Generate visualizations for Keras model
