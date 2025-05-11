@@ -1,0 +1,56 @@
+# Apptainer container files
+*.sif
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Checkpoints and model weights
+vae/*/checkpoints/
+*.h5
+*.pt
+*.pth
+*.ckpt
+
+# Logs and results
+vae/*/logs/
+vae/*/results/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Data
+data/ 
